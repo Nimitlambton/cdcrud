@@ -12,10 +12,11 @@ class ViewController: UIViewController {
 
 static var managedContext: NSManagedObjectContext!
 
-
+var index = 0
      var cp : Person?
-    var p: [Person] = []
-    
+    var p = [Person]()
+    var personlist = [Person]()
+   // var oldperson : Person?
     @IBOutlet weak var disp: UITableView!
 
     // MARK: - Properties
@@ -25,22 +26,39 @@ static var managedContext: NSManagedObjectContext!
       return formatter
     }()
     
+    @IBAction func addBtnPressed(_ sender: Any) {
+        let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "nextVC") as? nextVC
+        self.navigationController?.pushViewController(vc!, animated: true)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
        
-        self.disp.reloadData()
-        p = fetchRecords()
-        print("enter3")
+       
     }
 
  
+//    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+//        let dest = segue.destination as! nextVC
+//        if let path = disp.indexPathForSelectedRow?.row{
+//            
+//            dest.oldperson = p[index]
+//            
+//        }
+//        
+//        
+//    }
+//    
+    
     override func viewWillAppear(_ animated: Bool) {
         
         
-        self.disp.reloadData()
-        print("enter2")
-
+    
+        p = fetchRecords()
+    
+         disp.reloadData()
+        
+        
     }
     
     
@@ -53,15 +71,15 @@ static var managedContext: NSManagedObjectContext!
     
     
         func fetchRecords() -> [Person]{
-               var arrLocation = [Person]()
+              //
                let fetchRequest = NSFetchRequest<Person>(entityName: "Person")
                
                do{
-                   arrLocation = try ViewController.managedContext.fetch(fetchRequest)
+                   personlist = try ViewController.managedContext.fetch(fetchRequest)
                }catch{
                    print(error)
                }
-               return arrLocation
+               return personlist
            }
         
     
@@ -84,24 +102,21 @@ extension ViewController : UITableViewDataSource , UITableViewDelegate{
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        
-        
+
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-          
-        
-     
+
         cell.textLabel?.text = p[indexPath.row].name! + " " + "\(p[indexPath.row].age)" + " " + "\(p[indexPath.row].fee)"+"\(dateFormatter.string(from: p[indexPath.row].date!))"
-        
         
         return cell
     }
     
     
-    internal func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         guard let personToDelete = p[indexPath.row].self as? Person,
-        editingStyle == .delete else {
-          return
+   
+            editingStyle == .delete else {
+          
+                return
       }
 
         ViewController.managedContext.delete(personToDelete)
@@ -114,6 +129,20 @@ extension ViewController : UITableViewDataSource , UITableViewDelegate{
         print("Saving error: \(error), description: \(error.userInfo)")
       }
     }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        index = indexPath.row
+        
+  
+        let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "nextVC") as? nextVC
+        vc?.save = false
+          vc?.oldperson = p[index]
+        self.navigationController?.pushViewController(vc!, animated: true)
+        
+        
+    }
+    
     
     
     }
